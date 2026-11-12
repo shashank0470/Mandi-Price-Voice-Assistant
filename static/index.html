@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mandi Price Voice Assistant</title>
+  <style>
+    body { font-family: sans-serif; max-width: 560px; margin: 24px auto; padding: 0 16px; }
+    label { display: block; margin-top: 12px; }
+    select, input, button { font-size: 16px; padding: 8px; width: 100%; box-sizing: border-box; margin-top: 4px; }
+    button { margin-top: 12px; cursor: pointer; }
+    #reply { margin-top: 16px; padding: 12px; background: #f3f3f3; border-radius: 8px; min-height: 40px; }
+  </style>
+</head>
+<body>
+  <h2>Mandi price voice assistant</h2>
+
+  <label>Language
+    <select id="lang">
+      <option value="en">English</option>
+      <option value="hi">हिन्दी</option>
+      <option value="mr">मराठी</option>
+    </select>
+  </label>
+
+  <label>My town
+    <select id="base"></select>
+  </label>
+
+  <label>Max distance (km)
+    <input id="maxkm" type="number" value="50">
+  </label>
+
+  <label>Question
+    <input id="text" placeholder="e.g. aaj Nashik mandi mein pyaaz ka bhav kya hai">
+  </label>
+
+  <button id="ask">Get price</button>
+  <button id="speak">🎤 Speak question</button>
+
+  <div id="reply"></div>
+
+  <script>
+    const LOCALE = { en: "en-IN", hi: "hi-IN", mr: "mr-IN" };
+    const langEl = document.getElementById("lang");
+    const baseEl = document.getElementById("base");
+    const maxKmEl = document.getElementById("maxkm");
+    const textEl = document.getElementById("text");
+    const replyEl = document.getElementById("reply");
+
+    function show(message) {
+      replyEl.textContent = message;
+    }
+
+    function speak(message) {
+      if (!("speechSynthesis" in window)) return;
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.lang = LOCALE[langEl.value];
+      speechSynthesis.speak(utterance);
+    }
+
+    async function ask() {
+      if (!textEl.value.trim()) return;
+      show("...");
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: textEl.value,
+          lang: langEl.value,
+          base: baseEl.value,
+          max_km: maxKmEl.value
+        })
+      });
+      const data = await res.json();
+      show(data.reply);
+      speak(data.reply);
+    }
+
+    function listen() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) {
+        show("Voice input is not supported in this browser. Please use Chrome, or type your question.");
+        return;
+      }
+      const recognition = new SR();
+      recognition.lang = LOCALE[langEl.value];
+      recognition.interimResults = false;
+      recognition.onresult = (event) => {
+        textEl.value = event.results[0][0].transcript;
+        ask();
+      };
+      recognition.onerror = (event) => show("Microphone error: " + event.error);
+      recognition.start();
+    }
+
+    fetch("/api/mandis")
+      .then((r) => r.json())
+      .then((names) => {
+        names.forEach((name) => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          if (name === "Nashik") option.selected = true;
+          baseEl.appendChild(option);
+        });
+      });
+
+    document.getElementById("ask").addEventListener("click", ask);
+    document.getElementById("speak").addEventListener("click", listen);
+  </script>
+</body>
+</html>
