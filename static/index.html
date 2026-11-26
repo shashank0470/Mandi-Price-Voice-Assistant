@@ -3,98 +3,618 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mandi Price Voice Assistant</title>
+  <title>मंडी वाणी · Mandi Vani — Mandi Price Voice Assistant</title>
   <style>
-    body { font-family: sans-serif; max-width: 560px; margin: 24px auto; padding: 0 16px; }
-    label { display: block; margin-top: 12px; }
-    select, input, button { font-size: 16px; padding: 8px; width: 100%; box-sizing: border-box; margin-top: 4px; }
-    button { margin-top: 12px; cursor: pointer; }
-    #reply { margin-top: 16px; padding: 12px; background: #f3f3f3; border-radius: 8px; min-height: 40px; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: #f4f6f1;
+      color: #21352a;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans Devanagari", "Mangal", "Arial Unicode MS", sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .wrap { max-width: 520px; margin: 0 auto; padding: 20px 16px 70px; flex: 1; }
+
+    /* Header */
+    .app-header {
+      background: linear-gradient(135deg, #15803d 0%, #14532d 100%);
+      color: #fff;
+      padding: 24px 16px;
+      border-radius: 0 0 24px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px -4px rgba(20, 83, 45, 0.35);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark { font-size: 34px; line-height: 1; }
+    .brand-name { font-size: 22px; font-weight: 900; letter-spacing: 0.4px; line-height: 1.15; }
+    .brand-en { font-size: 12px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; color: #bbf7d0; margin-top: 2px; }
+    .brand-tag { font-size: 11.5px; color: #dcfce7; margin-top: 1px; font-weight: 600; }
+
+    .lang-picker { margin-top: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .lang-picker label { font-size: 12px; font-weight: 800; color: #dcfce7; text-transform: uppercase; letter-spacing: 0.8px; margin: 0; }
+    select.lang { background: #166534; color: #fff; border: 1px solid #37d08a; border-radius: 8px; padding: 6px 10px; font-size: 14px; cursor: pointer; }
+    select.lang option { background: #15803d; color: #fff; }
+
+    /* Cards */
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8e0;
+      border-radius: 18px;
+      padding: 20px 18px;
+      box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.04);
+      margin-bottom: 16px;
+    }
+    .card h3 { margin: 0 0 14px; font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: #14532d; display: flex; align-items: center; gap: 8px; }
+
+    /* Fields */
+    .field { margin: 0 0 14px; }
+    .field:last-child { margin-bottom: 0; }
+    label { display: block; font-size: 12px; font-weight: 800; color: #5c6b5e; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    select, input[type="text"], input[type="number"] {
+      width: 100%; padding: 11px 14px; border: 1.5px solid #cdd8c6; border-radius: 10px; background: #fff; font-size: 15px; color: #21352a;
+    }
+    select:focus, input:focus { outline: none; border-color: #15803d; box-shadow: 0 0 0 4px rgba(21, 128, 61, 0.12); }
+
+    /* Question row */
+    .input-wrap { position: relative; display: flex; align-items: center; }
+    .input-wrap input { padding-right: 64px; }
+    .mic-btn {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      width: 46px; height: 46px; border-radius: 50%; border: none; background: #15803d; color: #fff;
+      font-size: 20px; cursor: pointer; display: grid; place-items: center; box-shadow: 0 3px 8px rgba(21, 128, 61, 0.35);
+    }
+    .mic-btn:active:not(.listening) { transform: translateY(-50%) scale(0.94); }
+    .mic-btn.listening { background: #ea580c; animation: micPulse 1.4s infinite; }
+    @keyframes micPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.55); } 70% { box-shadow: 0 0 0 14px rgba(234, 88, 12, 0); } }
+
+    .hint { margin: 8px 0 0; font-size: 12.5px; color: #7a8a7c; }
+
+    /* Buttons */
+    .btn-row { display: flex; gap: 10px; margin-top: 6px; }
+    .btn { flex: 1; border: none; border-radius: 12px; padding: 14px 10px; font-size: 15px; font-weight: 800; cursor: pointer; letter-spacing: 0.4px; }
+    .btn-primary { background: #15803d; color: #fff; box-shadow: 0 4px 12px -4px rgba(21, 128, 61, 0.4); }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+    .btn:active:not(:disabled) { transform: translateY(-1px); }
+
+    /* Chips */
+    .chips { margin-top: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .chips b { font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: #5c6b5e; }
+    .chip { font-size: 13.5px; padding: 6px 11px; border-radius: 10px; border: 1.5px solid #cdd8c6; background: #fff; color: #21352a; cursor: pointer; white-space: nowrap; }
+    .chip:hover { border-color: #15803d; color: #15803d; }
+
+    /* Result area states */
+    #result .voice-status {
+      display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 22px;
+      background: #e7f5ee; color: #14532d; font-size: 12.5px; font-weight: 800; margin-bottom: 10px;
+    }
+    #result .voice-status.listening { background: #fdf3e7; color: #9a3412; }
+    #result .voice-status.speaking { background: #eef2ff; color: #3730a3; }
+    #result .voice-status::before { content: ""; width: 7px; height: 7px; background: currentColor; border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
+
+    .empty-state, .error-state, .loader, .result-content { display: none; text-align: center; }
+    .empty-state.show, .error-state.show, .loader.show, .result-content.show { display: block; }
+
+    .empty-icon { font-size: 44px; margin-bottom: 10px; display: block; }
+    .empty-title { font-size: 17px; font-weight: 800; color: #21352a; margin-bottom: 4px; }
+    .empty-desc { font-size: 13px; color: #6b7a6e; margin: 0 auto; max-width: 330px; }
+
+    .loader { flex-direction: column; align-items: center; gap: 8px; padding: 30px 0; }
+    .loader::after { content: ""; width: 30px; height: 30px; border: 3px solid #cdd8c6; border-top-color: #15803d; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loader b { font-size: 13px; color: #5c6b5e; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .error-state { background: #fdf3f2; border: 1.5px solid #fecaca; color: #991b1b; padding: 16px; border-radius: 14px; text-align: left; font-size: 14px; }
+    .err-title { font-weight: 800; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+
+    .result-content { animation: fadeIn 0.28s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .price-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .crop-chip { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px; border-radius: 8px; background: #ecfdf3; color: #14532d; border: 1px solid #a7d7b8; white-space: nowrap; }
+    .date-badge { margin-left: auto; font-size: 11.5px; font-weight: 800; color: #6b7a6e; background: #f1f5ee; padding: 3px 10px; border-radius: 10px; border: 1px solid #d8e2cf; white-space: nowrap; }
+
+    .mandi-line { font-size: 17px; font-weight: 800; color: #21352a; margin-bottom: 10px; }
+    .mandi-tag { font-size: 12px; font-weight: 700; color: #15803d; margin-left: 6px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+    .big-price { font-size: 44px; font-weight: 900; color: #14532d; line-height: 1.05; letter-spacing: -1px; margin: 6px 0 4px; display: flex; align-items: baseline; gap: 4px; }
+    .big-price .rs { font-size: 22px; }
+    .big-price .per { font-size: 15px; font-weight: 700; color: #5c6b5e; margin-left: 2px; }
+
+    .price-meta { display: flex; gap: 16px; font-size: 13px; color: #6b7a6e; margin-bottom: 14px; padding-top: 10px; border-top: 1px dashed #d8e2cf; }
+    .price-meta b { color: #21352a; }
+
+    .best-box { background: #fdf9ec; border: 1.5px solid #f2d8a0; border-radius: 14px; padding: 14px 16px; margin-top: 6px; }
+    .best-label { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.8px; color: #9a3412; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .best-row { font-size: 14px; color: #5b4a1e; line-height: 1.55; }
+    .best-row b { color: #92400e; }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .wrap { padding: 16px 12px 60px; }
+      .big-price { font-size: 36px; }
+      .btn-row { flex-direction: column; }
+    }
+
+    .show { display: block !important; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <h2>Mandi price voice assistant</h2>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark">🌾</span>
+      <div>
+        <div class="brand-name">मंडी वाणी</div>
+        <div class="brand-en">Mandi Vani</div>
+        <div class="brand-tag" id="brandTag">Mandi Price Voice Assistant</div>
+      </div>
+    </div>
+    <div class="lang-picker">
+      <label for="lang" id="lblLang">Language</label>
+      <select id="lang" class="lang">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+        <option value="mr">मराठी</option>
+      </select>
+    </div>
+  </header>
 
-  <label>Language
-    <select id="lang">
-      <option value="en">English</option>
-      <option value="hi">हिन्दी</option>
-      <option value="mr">मराठी</option>
-    </select>
-  </label>
+  <div class="wrap">
+    <section class="card">
+      <h3 id="lblSetup">Your question</h3>
 
-  <label>My town
-    <select id="base"></select>
-  </label>
+      <div class="field">
+        <label for="base" id="lblTown">My town</label>
+        <select id="base"></select>
+      </div>
 
-  <label>Max distance (km)
-    <input id="maxkm" type="number" value="50">
-  </label>
+      <div class="field">
+        <label for="maxkm" id="lblDistance">Max distance <span id="distVal">50</span> <span id="lblKm">km</span></label>
+        <input id="maxkm" type="range" min="10" max="500" step="10" value="50">
+      </div>
 
-  <label>Question
-    <input id="text" placeholder="e.g. aaj Nashik mandi mein pyaaz ka bhav kya hai">
-  </label>
+      <div class="field question-field">
+        <label for="text" id="lblAsk">Ask your question</label>
+        <div class="input-wrap">
+          <input id="text" type="text" placeholder="e.g. &quot;pyaaz ka bhav Pune mein kya hai&quot;">
+          <button id="speak" type="button" class="mic-btn" title="Speak question" aria-label="Speak question"><span class="mic-icon">🎤</span></button>
+        </div>
+        <p class="hint" id="lblHint">Speak in English, Hindi or Marathi</p>
+      </div>
 
-  <button id="ask">Get price</button>
-  <button id="speak">🎤 Speak question</button>
+      <div class="btn-row">
+        <button id="ask" type="button" class="btn btn-primary">Get price</button>
+      </div>
 
-  <div id="reply"></div>
+      <div class="chips">
+        <b id="lblQuick">Quick:</b>
+        <span id="quickChips"></span>
+      </div>
+    </section>
+
+    <section class="card" id="result">
+      <div id="voiceStatus" class="voice-status"></div>
+
+      <div id="loader" class="loader"><b id="lblFetching">Fetching price…</b></div>
+
+      <div id="emptyState" class="empty-state">
+        <span class="empty-icon">👋</span>
+        <div class="empty-title" id="lblEmptyTitle">Ask about a crop price</div>
+        <div class="empty-desc" id="lblEmptyDesc">Prices are per quintal. Data from Agmarknet (data.gov.in).</div>
+      </div>
+
+      <div id="errorState" class="error-state"></div>
+
+      <div id="resultContent" class="result-content">
+        <div class="price-header">
+          <span class="crop-chip" id="cropChip">Onion</span>
+          <span class="date-badge" id="dateBadge">Data date: —</span>
+        </div>
+        <div class="mandi-line"><span id="marketName">APMC Pune</span> <span class="mandi-tag">mandi</span></div>
+        <div class="big-price"><span class="rs">₹</span><span id="modalPrice">1,100</span><span class="per" id="lblPer">/ quintal</span></div>
+        <div class="price-meta">
+          <span><b id="lblMin">Min:</b> ₹<span id="minPrice">600</span></span>
+          <span><b id="lblMax">Max:</b> ₹<span id="maxPrice">1,600</span></span>
+        </div>
+        <div class="best-box">
+          <div class="best-label" id="lblBest">Best nearby price</div>
+          <div class="best-row"><span id="bestName">—</span> — ₹<span id="bestPrice">—</span>/qtl, <span id="bestKm">—</span> <span id="lblKm2">km</span> from <span id="bestBase">—</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="app-footer" style="text-align:center; padding: 16px; color: #6b7a6e; font-size: 12px;">
+    <div id="lblSource">Data: Agmarknet · data.gov.in · Free · Works best in Chrome</div>
+  </footer>
 
   <script>
-    const LOCALE = { en: "en-IN", hi: "hi-IN", mr: "mr-IN" };
+    const LOCALE = { en: "en-US", hi: "hi-IN", mr: "mr-IN" };
+    const LOCALE_FALLBACK = { en: "en-US", hi: "hi-IN", mr: "mr-IN" };
+
+    const LABELS = {
+      en: {
+        tag: "Mandi Price Voice Assistant",
+        setup: "Your question",
+        town: "My town",
+        distance: "Max distance",
+        km: "km",
+        ask: "Ask your question",
+        placeholder: 'e.g. "pyaaz ka bhav Pune mein kya hai"',
+        hint: "Speak in English, Hindi or Marathi",
+        btn: "Get price",
+        mic: "Speak question",
+        listening: "Listening…",
+        speaking: "Speaking reply…",
+        fetching: "Fetching price…",
+        emptyTitle: "Ask about a crop price",
+        emptyDesc: "Prices are per quintal. Data from Agmarknet (data.gov.in).",
+        dataDate: "Data date",
+        bestNearby: "Best nearby price",
+        from: "from",
+        per: "/ quintal",
+        qtl: "/ qtl",
+        min: "Min",
+        max: "Max",
+        quick: "Quick:",
+        source: "Data: Agmarknet · data.gov.in · Free · Works best in Chrome",
+        noCrop: "I did not catch the crop name. Please say it again.",
+        noData: "No price data found for this crop.",
+        noMandi: "No price data for this mandi today.",
+        noKey: "API key is not configured.",
+        noVoice: "Voice input is not supported in this browser. Please type your question.",
+        micError: "Microphone error. Try typing your question instead.",
+        server: "Could not reach the server. Please try again.",
+        exEn: ["onion price Pune", "tomato rate Nashik"],
+      },
+      hi: {
+        tag: "मंडी मूल्य आवाज़ सहायक",
+        setup: "अपना प्रश्न पूछें",
+        town: "मेरा शहर",
+        distance: "अधिकतम दूरी",
+        km: "किमी",
+        ask: "अपना प्रश्न पूछें",
+        placeholder: 'जैसे: "प्याज का भाव पुणे में क्या है"',
+        hint: "हिन्दी, अंग्रेजी या मराठी में बोलें",
+        btn: "भाव देखें",
+        mic: "बोलकर पूछें",
+        listening: "सुन रहा है…",
+        speaking: "जवाब बोल रहा है…",
+        fetching: "भाव निकल रहा है…",
+        emptyTitle: "किसी फसल का भाव पूछें",
+        emptyDesc: "भाव प्रति क्विंटल हैं। डेटा Agmarknet (data.gov.in) से।",
+        dataDate: "डेटा तारीख",
+        bestNearby: "आसपास सबसे अच्छा भाव",
+        from: "से",
+        per: "प्रति क्विंटल",
+        qtl: "/ क्विंटल",
+        min: "न्यूनतम",
+        max: "अधिकतम",
+        quick: "जल्दी आज़माएँ:",
+        source: "डेटा: Agmarknet · data.gov.in · मुफ्त · Chrome में सबसे अच्छा",
+        noCrop: "फसल का नाम समझ नहीं आया। कृपया दोबारा बोलिए।",
+        noData: "इस फसल का भाव उपलब्ध नहीं है।",
+        noMandi: "आज इस मंडी का भाव उपलब्ध नहीं है।",
+        noKey: "API key सेट नहीं की गई है।",
+        noVoice: "यह ब्राउज़र आवाज़ इनपुट का समर्थन नहीं करता। कृपया अपना प्रश्न टाइप करें।",
+        micError: "माइक्रोफ़ोन त्रुटि। कृपया अपना प्रश्न टाइप करें।",
+        server: "सर्वर से संपर्क नहीं हो सका। कृपया दोबारा प्रयास करें।",
+        exHi: ["प्याज का भाव पुणे में क्या है", "टमाटर का भाव नाशिक में क्या है"],
+      },
+      mr: {
+        tag: "मंडी भाव आवाज सहायक",
+        setup: "तुमचा प्रश्न विचार",
+        town: "माझा शहर",
+        distance: "जास्तीक अंतर",
+        km: "किमी",
+        ask: "तुमचा प्रश्न विचार",
+        placeholder: 'उदा.: "पुणे मंडीत कांद्याचे भाव काय आहे"',
+        hint: "इंग्रजी, हिन्दी किंवा मराठी मध्ये बोला",
+        btn: "भाव पहा",
+        mic: "बोलून विचारा",
+        listening: "ऐकत आहे…",
+        speaking: "उत्तर बोलत आहे…",
+        fetching: "भाव मिळवत आहे…",
+        emptyTitle: "किसी पिकाचा भाव विचारा",
+        emptyDesc: "भाव प्रति क्विंटल आहेत. डेटा Agmarknet (data.gov.in) पासून.",
+        dataDate: "डेटा तारीख",
+        bestNearby: "जवळचा सर्वोत्तम भाव",
+        from: "पासून",
+        per: "प्रति क्विंटल",
+        qtl: "/ क्विंटल",
+        min: "किमान",
+        max: "कमाल",
+        quick: "जलद प्रयत्न करा:",
+        source: "डेटा: Agmarknet · data.gov.in · विनामूल्य · Chrome मध्ये सर्वोत्तम",
+        noCrop: "पिकाचे नाव समजले नाही. कृपया पुन्हा सांगा.",
+        noData: "या पिकाचा भाव उपलब्ध नाही.",
+        noMandi: "आज या मंडीचा भाव उपलब्ध नाही.",
+        noKey: "API key सेट केलेली नाही.",
+        noVoice: "या ब्राउझरमध्ये आवाज इनपुट समर्थित नाही. कृपया तुमचा प्रश्न टाइप करा.",
+        micError: "मायक्रोफोन त्रुटी. कृपया तुमचा प्रश्न टाइप करा.",
+        server: "सर्व्हरशी संपर्क साधता आला नाही. कृपया पुन्हा प्रयत्न करा.",
+        exMr: ["पुणे मंडीत कांद्याचे भाव काय आहे", "नाशिक मंडीत टोमॅटोचे भाव काय आहे"],
+      },
+    };
+
+    let lang = "en";
+
     const langEl = document.getElementById("lang");
     const baseEl = document.getElementById("base");
     const maxKmEl = document.getElementById("maxkm");
+    const distValEl = document.getElementById("distVal");
     const textEl = document.getElementById("text");
-    const replyEl = document.getElementById("reply");
+    const askBtn = document.getElementById("ask");
+    const speakBtn = document.getElementById("speak");
+    const voiceStatusEl = document.getElementById("voiceStatus");
+    const loaderEl = document.getElementById("loader");
+    const emptyEl = document.getElementById("emptyState");
+    const errorEl = document.getElementById("errorState");
+    const contentEl = document.getElementById("resultContent");
 
-    function show(message) {
-      replyEl.textContent = message;
+    const cropChip = document.getElementById("cropChip");
+    const dateBadge = document.getElementById("dateBadge");
+    const marketName = document.getElementById("marketName");
+    const modalPrice = document.getElementById("modalPrice");
+    const minPrice = document.getElementById("minPrice");
+    const maxPrice = document.getElementById("maxPrice");
+    const bestName = document.getElementById("bestName");
+    const bestPrice = document.getElementById("bestPrice");
+    const bestKm = document.getElementById("bestKm");
+    const bestBase = document.getElementById("bestBase");
+    const quickChips = document.getElementById("quickChips");
+    const lblKm1El = document.getElementById("lblKm");
+    const lblKm2El = document.getElementById("lblKm2");
+
+    let fetching = false;
+    let listening = false;
+
+    function t(key) {
+      return (LABELS[lang] && LABELS[lang][key]) || (LABELS.en && LABELS.en[key]) || key;
     }
 
-    function speak(message) {
-      if (!("speechSynthesis" in window)) return;
-      speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.lang = LOCALE[langEl.value];
-      speechSynthesis.speak(utterance);
+    function escapeHtml(str) {
+      const d = document.createElement("div");
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    function nfmt(v) {
+      if (v == null) return "—";
+      const n = Number(v);
+      if (!Number.isFinite(n)) return "—";
+      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function renderLabels() {
+      document.getElementById("brandTag").textContent = t("tag");
+      document.getElementById("lblSetup").textContent = t("setup");
+      document.getElementById("lblTown").textContent = t("town");
+      distValEl.textContent = maxKmEl.value;
+      lblKm1El.textContent = t("km");
+      document.getElementById("lblAsk").textContent = t("ask");
+      textEl.placeholder = t("placeholder");
+      document.getElementById("lblHint").textContent = t("hint");
+      askBtn.textContent = t("btn");
+      speakBtn.setAttribute("title", t("mic"));
+      document.getElementById("lblFetching").textContent = t("fetching");
+      document.getElementById("lblEmptyTitle").textContent = t("emptyTitle");
+      document.getElementById("lblEmptyDesc").textContent = t("emptyDesc");
+      document.getElementById("lblQuick").textContent = t("quick");
+      document.getElementById("lblPer").textContent = t("per");
+      document.getElementById("lblMin").textContent = t("min");
+      document.getElementById("lblMax").textContent = t("max");
+      document.getElementById("lblKm2").textContent = t("km");
+      document.getElementById("lblSource").textContent = t("source");
+      document.getElementById("lblBest").textContent = t("bestNearby");
+      renderChips();
+      if (voiceStatusEl.classList.contains("listening")) voiceStatusEl.textContent = t("listening");
+      if (voiceStatusEl.classList.contains("speaking")) voiceStatusEl.textContent = t("speaking");
+    }
+
+    function renderChips() {
+      const key = "ex" + lang;
+      const examples = (LABELS[lang] && LABELS[lang][key]) || LABELS.en.exEn;
+      quickChips.innerHTML = "";
+      examples.forEach((ex) => {
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = ex;
+        quickChips.appendChild(chip);
+      });
+    }
+
+    const VIEWS = { empty: emptyEl, error: errorEl, loading: loaderEl, result: contentEl };
+    function setView(name) {
+      Object.values(VIEWS).forEach((el) => el.classList.remove("show"));
+      VIEWS[name].classList.add("show");
+    }
+
+    function voiceStatus(kind) {
+      voiceStatusEl.className = "voice-status " + kind;
+      voiceStatusEl.textContent = kind === "listening" ? t("listening") : t("speaking");
+      voiceStatusEl.classList.remove("hidden");
+    }
+    function voiceStop() {
+      voiceStatusEl.classList.add("hidden");
+    }
+    function setBusyState() {
+      const b = fetching || listening;
+      askBtn.disabled = b;
+      speakBtn.disabled = b;
     }
 
     async function ask() {
+      if (fetching) return;
       if (!textEl.value.trim()) return;
-      show("...");
-      const res = await fetch("/api/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: textEl.value,
-          lang: langEl.value,
-          base: baseEl.value,
-          max_km: maxKmEl.value
-        })
-      });
-      const data = await res.json();
-      show(data.reply);
-      speak(data.reply);
+      fetching = true;
+      setBusyState();
+      setView("loading");
+      voiceStop();
+
+      try {
+        const res = await fetch("/api/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: textEl.value,
+            lang: langEl.value,
+            base: baseEl.value,
+            max_km: maxKmEl.value,
+          }),
+        });
+        const data = await res.json();
+        lang = langEl.value;
+        renderLabels();
+
+        if (!res.ok || data.status === "error") {
+          setView("error");
+          errorEl.innerHTML = `<div class="err-title">⚠ ${escapeHtml(t("server"))}</div>`;
+          speak(t("server"));
+          return;
+        }
+        const ERROR_STATUSES = ["no_crop", "no_data", "no_mandi", "no_key"];
+        if (ERROR_STATUSES.includes(data.status)) {
+          renderError(data.status, data.reply);
+          return;
+        }
+        renderResult(data);
+      } catch (err) {
+        setView("error");
+        errorEl.innerHTML = `<div class="err-title">⚠ ${escapeHtml(t("server"))}</div>`;
+        speak(t("server"));
+      } finally {
+        fetching = false;
+        setBusyState();
+      }
+    }
+
+    function renderError(status, reply) {
+      setView("error");
+      const titles = {
+        no_crop: t("noCrop"),
+        no_data: t("noData"),
+        no_mandi: t("noMandi"),
+        no_key: t("noKey"),
+      };
+      errorEl.innerHTML = `<div class="err-title">⚠ ${escapeHtml(titles[status] || t("noData"))}</div><div>${escapeHtml(reply || "")}</div>`;
+      speak(reply || titles[status] || t("noData"));
+    }
+
+    function renderResult(data) {
+      setView("result");
+      cropChip.textContent = escapeHtml(data.crop || "—");
+      dateBadge.textContent = data.arrival_date ? t("dataDate") + ": " + escapeHtml(data.arrival_date) : "—";
+      marketName.innerHTML = escapeHtml(data.market || "—") + ' <span class="mandi-tag">mandi</span>';
+      modalPrice.textContent = nfmt(data.modal_price);
+      minPrice.textContent = nfmt(data.min_price);
+      maxPrice.textContent = nfmt(data.max_price);
+      bestName.textContent = escapeHtml(data.best_mandi || "—");
+      bestPrice.textContent = nfmt(data.best_modal);
+      bestKm.textContent = data.best_km != null ? String(data.best_km) : "—";
+      bestBase.textContent = escapeHtml(data.base || "—");
+      speak(data.reply || "");
+    }
+
+    function speak(message) {
+      if (!message || !("speechSynthesis" in window)) return;
+      speechSynthesis.cancel();
+      voiceStatus("speaking");
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.lang = LOCALE[langEl.value] || LOCALE_FALLBACK.en;
+      utterance.onend = voiceStop;
+      utterance.onerror = voiceStop;
+      speechSynthesis.speak(utterance);
     }
 
     function listen() {
+      if (listening || fetching) return;
+      lang = langEl.value;
+      renderLabels();
+
+      // Stop any ongoing reply so the mic doesn't pick up the spoken voice.
+      if ("speechSynthesis" in window) speechSynthesis.cancel();
+
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SR) {
-        show("Voice input is not supported in this browser. Please use Chrome, or type your question.");
+        setView("error");
+        errorEl.innerHTML = `<div class="err-title">⚠ ${escapeHtml(t("noVoice"))}</div>`;
+        speak(t("noVoice"));
         return;
       }
+
+      listening = true;
+      setBusyState();
+      voiceStatus("listening");
+
       const recognition = new SR();
-      recognition.lang = LOCALE[langEl.value];
+      recognition.lang = LOCALE[lang] || LOCALE_FALLBACK.en;
       recognition.interimResults = false;
+
+      let done = false;
+      let fallbackTried = false;
+      function finish() {
+        if (done) return;
+        done = true;
+        voiceStop();
+        listening = false;
+        setBusyState();
+      }
+
       recognition.onresult = (event) => {
-        textEl.value = event.results[0][0].transcript;
+        finish();
+        const transcript = (event.results[0][0].transcript || "").trim();
+        if (!transcript) {
+          setView("error");
+          errorEl.textContent = t("noVoice");
+          return;
+        }
+        textEl.value = transcript;
         ask();
       };
-      recognition.onerror = (event) => show("Microphone error: " + event.error);
-      recognition.start();
+      recognition.onerror = (event) => {
+        // Try fallback locale once if the selected language isn't supported.
+        if (!fallbackTried && LOCALE[lang] !== LOCALE_FALLBACK[lang]) {
+          fallbackTried = true;
+          try { recognition.stop(); } catch (e) { }
+          recognition.lang = LOCALE_FALLBACK[lang];
+          try { recognition.start(); } catch (e2) { finish(); setView("error"); errorEl.textContent = t("micError"); }
+          return;
+        }
+        finish();
+        let msg = t("micError");
+        if (event.error === "not-allowed") msg = "Microphone permission was denied. Please enable it and try again.";
+        else if (event.error === "no-speech") msg = "No speech was detected. Please try again.";
+        setView("error");
+        errorEl.textContent = msg;
+      };
+      recognition.onend = finish;
+
+      try {
+        recognition.start();
+      } catch (err) {
+        finish();
+        setView("error");
+        errorEl.textContent = t("micError");
+      }
+
+      // Auto-stop listening after 8 seconds so the UI never gets stuck.
+      setTimeout(() => {
+        if (listening) {
+          try { recognition.stop(); } catch (e) { }
+          finish();
+          setView("error");
+          errorEl.textContent = t("micError");
+        }
+      }, 8000);
     }
 
+    // Init
     fetch("/api/mandis")
       .then((r) => r.json())
       .then((names) => {
@@ -105,10 +625,33 @@
           if (name === "Nashik") option.selected = true;
           baseEl.appendChild(option);
         });
+        renderLabels();
+        setView("empty");
       });
 
-    document.getElementById("ask").addEventListener("click", ask);
-    document.getElementById("speak").addEventListener("click", listen);
+    maxKmEl.addEventListener("input", () => {
+      distValEl.textContent = maxKmEl.value;
+      renderLabels();
+    });
+
+    langEl.addEventListener("change", () => {
+      lang = langEl.value;
+      renderLabels();
+    });
+
+    textEl.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") ask();
+    });
+
+    quickChips.addEventListener("click", (e) => {
+      if (e.target.classList.contains("chip")) {
+        textEl.value = e.target.textContent;
+        textEl.focus();
+      }
+    });
+
+    askBtn.addEventListener("click", ask);
+    speakBtn.addEventListener("click", listen);
   </script>
 </body>
 </html>

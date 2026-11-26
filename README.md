@@ -1,4 +1,4 @@
-# Mandi Vani: Mandi Price Voice Assistant
+d# Mandi Vani: Mandi Price Voice Assistant
 
 Voice assistant that tells farmers today's mandi prices for onion, tomato, potato and cabbage in English, Hindi and Marathi, and names the best-paying nearby mandi.
 

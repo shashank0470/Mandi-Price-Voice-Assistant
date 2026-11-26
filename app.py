@@ -110,15 +110,15 @@ def ask():
 
     crop = find_commodity(text)
     if not crop:
-        return jsonify(reply=msg["no_crop"])
+        return jsonify(reply=msg["no_crop"], status="no_crop")
     if not API_KEY:
-        return jsonify(reply=msg["no_key"])
+        return jsonify(reply=msg["no_key"], status="no_key")
 
     try:
         records = fetch_prices(crop, STATE, API_KEY)
     except Exception as e:
         print("API error:", e)
-        return jsonify(reply=msg["no_data"].format(crop=crop))
+        return jsonify(reply=msg["no_data"].format(crop=crop), status="no_data")
 
     latest = latest_per_market(records)
     print("Records from API:", len(records))
@@ -133,13 +133,13 @@ def ask():
             nearby.append((name, km, record))
 
     if not nearby:
-        return jsonify(reply=msg["no_data"].format(crop=crop))
+        return jsonify(reply=msg["no_data"].format(crop=crop), status="no_data")
 
     best_name, best_km, best_record = max(nearby, key=lambda item: _price(item[2]))
 
     if named:
         if named not in latest:
-            return jsonify(reply=msg["no_mandi"].format(crop=crop, mandi=named))
+            return jsonify(reply=msg["no_mandi"].format(crop=crop, mandi=named), status="no_mandi")
         target_name, target_record = named, latest[named]
     else:
         target_name, target_record = best_name, best_record
@@ -156,7 +156,20 @@ def ask():
         km=round(best_km),
         base=base,
     )
-    return jsonify(reply=reply, crop=crop, market=target_name)
+    return jsonify(
+        reply=reply,
+        status="ok",
+        crop=crop,
+        market=target_name,
+        modal_price=target_record.get("modal_price"),
+        min_price=target_record.get("min_price"),
+        max_price=target_record.get("max_price"),
+        arrival_date=target_record.get("arrival_date"),
+        best_mandi=best_name,
+        best_modal=best_record.get("modal_price"),
+        best_km=round(best_km),
+        base=base,
+    )
 
 
 if __name__ == "__main__":
